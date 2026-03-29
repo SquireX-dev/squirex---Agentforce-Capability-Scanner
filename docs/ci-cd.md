@@ -56,7 +56,7 @@ agentforce-capability:
     - squirex scan -d ./force-app --sarif gl-capability-report.json
   artifacts:
     reports:
-      sast: gl-capability-report.json
+      capability: gl-capability-report.json
   variables:
     SQUIREX_LICENSE_KEY: $SQUIREX_LICENSE_KEY
 ```

@@ -11,9 +11,10 @@ SquireX is a high-fidelity static analysis engine and mock runtime for Salesforc
 
 The primary engine of SquireX performs deterministic capability scanning on your Agentforce metadata (`.agent`, `.genAiFunction-meta.xml`, `schema.json`).
 
-*   **Prompt Injection Detection**: Identifies inputs missing defensive XML tags.
-*   **Excessive Agency Prevention**: Enforces manual confirmation requirements for state-modifying actions.
-*   **FLS Masking Verification**: Flags explicit field references in Prompt Templates to ensure Einstein Trust Layer applicability.
+*   **Template Context Poisoning**: Finds unescaped AI outputs embedded directly inside Prompt Template `<content>` XML blocks.
+*   **System Context Escalation**: Warns if an autonomous Agent triggers a target Flow running in `SystemModeWithoutSharing`.
+*   **Excessive Agency Prevention**: Enforces manual confirmation requirements for state-modifying actions and Flows.
+*   **Variable Injection in DML**: Detects dynamically bound AI `{!Variables}` within target Flow Filters and HTTP Callouts to prevent SSRF and SOQL Injection.
 *   **Schema Drift**: Detects mismatches between Open API schemas and standard metadata definitions.
 
 ## Licensing Tiers
