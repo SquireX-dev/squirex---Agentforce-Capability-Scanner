@@ -11,7 +11,7 @@ SquireX is a high-fidelity static analysis engine and mock runtime for Salesforc
 
 The primary engine of SquireX performs deterministic capability scanning on your Agentforce metadata (`.agent`, `.genAiFunction-meta.xml`, `.genAiPlugin-meta.xml`, `schema.json`, `.flow-meta.xml`, `.genAiPromptTemplate-meta.xml`).
 
-### 23 Security Rules Across 8 Categories
+### 26 Security Rules Across 10 Categories
 
 | Category | Rules | What It Catches |
 |---|---|---|
@@ -20,20 +20,24 @@ The primary engine of SquireX performs deterministic capability scanning on your
 | **Grounding Security** | 3.1, 3.2 | Hardcoded API keys/tokens in templates, FLS masking gaps |
 | **Structural Dependency** | 4.1, 4.2, 4.3 | Planner bundle completeness, deactivation collisions, evaluation governance |
 | **Extended Graph Security** | FLOW-01..03, API-01, PT-01..02 | Flow context misuse, Flow injection, API injection, prompt template poisoning/activation |
-| **Supply Chain Security** | SC-01, SC-02 | API version downgrade, schema desync detection |
+| **Supply Chain Security** | SC-01, SC-02, **SC-03** | API version downgrade, schema desync, **managed package origin** |
 | **Agentic Architecture** | 7.1, 7.2, 8.1 | Topic bloat, skill semantic misalignment, context traversal gaps |
-| **Instruction Integrity** | **9.1** | **Metadata instruction poisoning** — detects adversarial content in LLM-visible fields invisible to human reviewers (jailbreak, data exfiltration, role override patterns) |
+| **Instruction Integrity** | **9.1, 9.2** | **Metadata instruction poisoning**, **cross-topic boundary violations** (planner manipulation, shared context contamination) |
+| **Operational Reliability** | **10.1** | **Validation rule conflicts** — detects DML on objects with validation rules invisible to the LLM planner |
 
 ### Key Capabilities
 
 *   **Metadata Instruction Poisoning Detection**: Scans `GenAiPlugin` instructions, `GenAiFunction` descriptions, `.agent` system instruction overrides, and `PromptTemplate` content for adversarial patterns (jailbreak phrases, data exfiltration commands, role override attempts). Uses a configurable JSON pattern library.
+*   **Cross-Topic Instruction Boundary**: Detects when a topic's instructions reference other topics by name (shared context contamination) or attempt to override the planner's topic-selection logic (privilege escalation within the agentic context).
 *   **Template Context Poisoning**: Finds unescaped AI outputs embedded directly inside Prompt Template `<content>` XML blocks.
 *   **System Context Escalation**: Warns if an autonomous Agent triggers a target Flow running in `SystemModeWithoutSharing` or an Apex class running `without sharing`.
 *   **Excessive Agency Prevention**: Enforces manual confirmation requirements for state-modifying actions and Flows.
 *   **Transition Cycle Detection**: Detects infinite conversation loops in topic transitions (A→B→C→A) that constitute denial-of-service conditions.
 *   **Variable Injection in DML**: Detects dynamically bound AI `{!Variables}` within target Flow Filters and HTTP Callouts to prevent SSRF and SOQL Injection.
+*   **Managed Package Supply Chain**: Flags agent actions that invoke code from third-party managed packages — opaque to the org admin and a supply chain risk.
+*   **Validation Rule Conflict**: Detects when agent actions perform DML on objects with validation rules invisible to the LLM planner.
 *   **Schema Drift**: Detects mismatches between Open API schemas and standard metadata definitions.
-*   **Deep Pipeline Diagnostics**: `squirex diagnose` command provides structured JSON reports with AST health, graph topology, linker traces, per-rule timing, and violation breakdowns.
+*   **Deep Pipeline Diagnostics**: `squirex diagnose` command provides structured JSON reports with AST health, graph topology, linker traces, per-rule timing, instruction audit manifest, and violation breakdowns.
 
 ## Licensing Tiers
 
