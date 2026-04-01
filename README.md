@@ -32,15 +32,16 @@ Results are output as **SARIF v2.1.0**, integrating directly into GitHub Advance
 
 | Category | Rules | What It Catches |
 |---|---|---|
-| **Action Configuration** | 1.1, 1.2, 1.3 | Missing confirmation requirements, schema desync, privilege escalation (Apex `without sharing` + Flow `SystemModeWithoutSharing`) |
-| **Agent Script Safety** | 2.1, 2.2, 2.3 | Unguarded DML actions, transition dead-ends & cycles (DoS), prompt injection defense gaps |
-| **Grounding Security** | 3.1, 3.2 | Hardcoded API keys/tokens in templates, FLS masking gaps |
-| **Structural Dependency** | 4.1, 4.2, 4.3 | Planner bundle completeness, deactivation collisions, evaluation governance |
-| **Extended Graph Security** | FLOW-01..03, API-01, PT-01..02 | Flow context misuse, Flow injection, API injection, prompt template poisoning/activation |
-| **Supply Chain Security** | SC-01, SC-02, SC-03 | API version downgrade, schema desync, managed package origin |
-| **Agentic Architecture** | 7.1, 7.2, 8.1 | Topic bloat, skill semantic misalignment, context traversal gaps |
-| **Instruction Integrity** | 9.1, 9.2 | Metadata instruction poisoning, cross-topic boundary violations |
-| **Operational Reliability** | 10.1 | Validation rule conflicts invisible to the LLM planner |
+| **Action Configuration** | AGENTFORCE-1.1, 1.2, 1.3 | Missing confirmation requirements, schema desync, privilege escalation (Apex `without sharing` + Flow `SystemModeWithoutSharing`) |
+| **Agent Script Safety** | AGENTFORCE-2.1, 2.2, 2.3 | Unguarded DML actions, transition dead-ends & cycles (DoS), prompt injection defense gaps |
+| **Grounding Security** | AGENTFORCE-3.1, 3.2 | Hardcoded API keys/tokens in templates, FLS masking gaps |
+| **Structural Dependency** | AGENTFORCE-4.1, 4.2, 4.3 | Planner bundle completeness, deactivation collisions, evaluation governance |
+| **Extended Graph Security** | AGENTFORCE-5.1..5.6 | Flow context misuse, silent state modification, DML injection, API injection, template poisoning, experimental activation |
+| **Supply Chain Security** | AGENTFORCE-6.1, 6.2, 6.3 | API version downgrade, schema desync, managed package origin |
+| **Agentic Architecture** | AGENTFORCE-7.1, 7.2 | Topic bloat, skill semantic misalignment |
+| **Relational Traversal** | AGENTFORCE-8.1 | Context traversal data exfiltration |
+| **Instruction Integrity** | AGENTFORCE-9.1, 9.2 | Metadata instruction poisoning, cross-topic boundary violations |
+| **Operational Reliability** | AGENTFORCE-10.1 | Validation rule conflicts invisible to the LLM planner |
 
 > **Full rule reference with remediation guidance:** [docs/security-rules.md](docs/security-rules.md)
 
@@ -72,6 +73,65 @@ Your Salesforce Project
   │
   ▼
 GitHub Security Dashboard / GitLab Security / CI Gate
+```
+
+---
+
+## Testing Center Bridge — Agentforce DX Test Generation
+
+SquireX bridges **static analysis** with Salesforce's native **dynamic testing**. The `generate-tests` command converts SARIF scan violations into **Agentforce DX test specifications** compatible with `sf agent test run`.
+
+```bash
+# Scan + generate DX tests in one step
+squirex generate-tests -d ./force-app
+
+# Convert an existing SARIF file to DX tests
+squirex generate-tests --sarif results.sarif -o agentforce-tests.yaml
+
+# Generate tests for specific rules only
+squirex generate-tests --rules AGENTFORCE-1.1,AGENTFORCE-9.1
+
+# Generate, validate, and push to a sandbox org
+squirex generate-tests -d ./force-app --validate --push --target-org my-sandbox
+
+# JSON output (for programmatic consumption)
+squirex generate-tests --sarif results.sarif --json
+```
+
+**Pipeline:** `squirex scan → squirex generate-tests → sf agent test run → Testing Center`
+
+**Salesforce CLI Prerequisites** (required for `--validate` and `--push`):
+
+```bash
+# 1. Install the Salesforce CLI
+npm install -g @salesforce/cli
+
+# 2. Install the Agentforce DX plugin
+sf plugins install @salesforce/plugin-agent
+
+# 3. Authenticate to your org
+sf org login web --alias my-sandbox --instance-url https://test.salesforce.com
+
+# 4. Verify authentication
+sf org display --target-org my-sandbox
+```
+
+All **26 rules** have dedicated test generators with normalized `AGENTFORCE-X.Y` identifiers.
+
+### MCP Server Integration
+
+AI coding agents can invoke the Testing Center bridge via the [SquireX MCP Server](https://www.npmjs.com/package/@squirex.dev/mcp-server):
+
+```json
+{
+  "mcpServers": {
+    "squirex": {
+      "command": "npx",
+      "args": ["-y", "@squirex.dev/mcp-server"],
+      "env": { "SQUIREX_PROJECT_DIR": "/path/to/your/salesforce/project" }
+    }
+  }
+}
 ```
 
 ---
